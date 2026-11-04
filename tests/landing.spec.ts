@@ -1,19 +1,69 @@
 import { test, expect } from "@playwright/test";
 
+test("scrolling changes the store scenes without a marquee or star decorations", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/?lang=en");
+  await page.evaluate(() => document.fonts.ready);
+  await expect(
+    page.locator(".marquee, [data-marquee], .lucide-asterisk"),
+  ).toHaveCount(0);
+  expect(await page.locator("body").innerText()).not.toMatch(/[✳✶★☆]/);
+  const scene = page.locator(".experience-section");
+  const geometry = await scene.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      start: rect.top + scrollY - 100,
+      end: rect.bottom + scrollY - innerHeight,
+    };
+  });
+  for (const [progress, index] of [
+    [0.08, 0],
+    [0.55, 1],
+    [0.98, 2],
+  ]) {
+    await page.evaluate(
+      (top) => window.scrollTo({ top, behavior: "instant" }),
+      geometry.start + (geometry.end - geometry.start) * progress,
+    );
+    await expect(scene).toHaveAttribute("data-step", String(index));
+    await expect
+      .poll(() =>
+        scene
+          .locator(".scene-photo")
+          .nth(index)
+          .evaluate((element) => Number(getComputedStyle(element).opacity)),
+      )
+      .toBeGreaterThan(0.95);
+  }
+  const infinite = await page.evaluate(
+    () =>
+      document
+        .getAnimations()
+        .filter(
+          (animation) => animation.effect?.getTiming().iterations === Infinity,
+        ).length,
+  );
+  expect(infinite).toBe(0);
+});
+
 test("all three languages translate the page and persist after reload", async ({
   page,
 }) => {
   await page.goto("/?lang=uk");
   await expect(page.locator("html")).toHaveAttribute("lang", "uk");
-  await expect(page.locator("h1")).toContainText("МІСТО");
+  await expect(page.locator("h1")).toContainText("відчуваєш.");
   await page.getByRole("button", { name: "Русский", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "ru");
-  await expect(page.locator("h1")).toContainText("ГОРОД");
-  await expect(page.locator("#collection-heading")).toContainText("ВЫБИРАЙ");
+  await expect(page.locator("h1")).toContainText("чувствуешь.");
+  await expect(page.locator("#collection-heading")).toContainText("Выбирай");
   await page.getByRole("button", { name: "English", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await expect(page.locator("h1")).toContainText("YOUR");
-  await expect(page.locator("#location-heading")).toContainText("IN KYIV.");
+  await expect(page.locator("h1")).toContainText("Style");
+  await expect(page.locator("#location-heading")).toContainText(
+    "at City Brands.",
+  );
   expect(await page.locator("body").innerText()).not.toMatch(
     /[А-Яа-яІіЇїЄєҐґ]/,
   );
@@ -148,14 +198,14 @@ test("layouts fit phone, tablet and desktop in every language without broken ima
         overflow,
         `${width}px / ${lang} horizontal overflow`,
       ).toBeLessThanOrEqual(1);
-      const headingFits = await page.locator(".hero").evaluate((hero) => {
+      const headingFits = await page.locator(".hero-copy").evaluate((hero) => {
         const boundary = hero.getBoundingClientRect();
         return [...hero.querySelectorAll(".hero-line")].every((line) => {
           const range = document.createRange();
           range.selectNodeContents(line);
           const text = range.getBoundingClientRect();
           return (
-            text.right <= boundary.right - 12 && text.left >= boundary.left
+            text.right <= boundary.right + 1 && text.left >= boundary.left - 6
           );
         });
       });
@@ -164,8 +214,7 @@ test("layouts fit phone, tablet and desktop in every language without broken ima
         `${width}px / ${lang} heading must not be cropped`,
       ).toBe(true);
       for (const image of await page.locator("img").all()) {
-        // Decorative logos float continuously; asset readiness must not depend
-        // on the non-interactive image becoming positionally stable.
+        // Load lazy assets without waiting for finite scroll reveals to settle.
         await image.evaluate((element) =>
           element.scrollIntoView({ block: "nearest", behavior: "instant" }),
         );
@@ -200,34 +249,32 @@ test("category filters open the matching video and FAQ expands", async ({
   await page.keyboard.press("Escape");
   await filters.getByRole("button", { name: "All", exact: true }).click();
   await expect(page.locator(".category-card")).toHaveCount(3);
-  const hours = page
-    .locator("details")
-    .filter({
-      has: page.locator("summary", { hasText: "What are your opening hours?" }),
-    });
+  const hours = page.locator("details").filter({
+    has: page.locator("summary", { hasText: "What are your opening hours?" }),
+  });
   await hours.locator("summary").click();
   await expect(hours).toHaveAttribute("open", "");
   await expect(hours.locator("p")).toBeVisible();
 });
 
-test("reduced motion leaves the content visible and stops the background video", async ({
+test("reduced motion leaves content visible and disables scroll scenes", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/?lang=en");
-  await expect(page.locator(".hero-video")).toHaveJSProperty("paused", true);
+  await expect(page.locator("video[autoplay]")).toHaveCount(0);
   await expect(page.locator("html")).not.toHaveClass(/\blenis\b/);
   await page.locator("#about").scrollIntoViewIfNeeded();
   await expect(page.locator(".about-copy")).toHaveCSS("opacity", "1");
-  for (const word of await page.locator(".word-reveal>span").all())
-    await expect(word).toHaveCSS("opacity", "1");
-  await expect(page.locator(".marquee-track")).toHaveCSS(
-    "animation-name",
-    "none",
+  for (const reveal of await page.locator(".reveal").all())
+    await expect(reveal).toHaveCSS("opacity", "1");
+  await expect(page.locator(".experience-sticky")).toHaveCSS(
+    "position",
+    "static",
   );
 });
 
-test("smooth anchors keep their destination and animated cards remain usable", async ({
+test("smooth anchors keep their destination and category videos remain usable", async ({
   page,
 }) => {
   await page.goto("/?lang=en");
@@ -246,18 +293,6 @@ test("smooth anchors keep their destination and animated cards remain usable", a
 
   const card = page.locator(".category-card").first();
   await card.scrollIntoViewIfNeeded();
-  const bounds = await card.boundingBox();
-  expect(bounds).not.toBeNull();
-  const initial = await card.evaluate(
-    (element) => getComputedStyle(element).transform,
-  );
-  await page.mouse.move(
-    bounds!.x + bounds!.width * 0.8,
-    bounds!.y + bounds!.height * 0.3,
-  );
-  await expect
-    .poll(() => card.evaluate((element) => getComputedStyle(element).transform))
-    .not.toBe(initial);
   await card.click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.keyboard.press("Escape");

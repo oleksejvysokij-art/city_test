@@ -5,6 +5,89 @@ export type Locale = "uk" | "ru" | "en";
 
 // Ukrainian is the source language. Each entry contains Russian and English.
 const translations: Record<string, [string, string]> = {
+  "Магазин із характером": ["Магазин с характером", "A store with personality"],
+  "Стиль,": ["Стиль,", "Style"],
+  "який ти": ["который", "you can"],
+  "відчуваєш.": ["чувствуешь.", "feel."],
+  "Речі, що пасують твоєму ритму.": [
+    "Вещи, которые подходят твоему ритму.",
+    "Pieces that move at your pace.",
+  ],
+  "Одяг, взуття та аксесуари — наживо у Києві.": [
+    "Одежда, обувь и аксессуары — вживую в Киеве.",
+    "Clothing, footwear and accessories. In person, in Kyiv.",
+  ],
+  "Натхнення для твого міського стилю": [
+    "Вдохновение для твоего городского стиля",
+    "Inspiration for your everyday city style",
+  ],
+  "Познайомимось ближче": [
+    "Познакомимся ближе",
+    "Let's get to know each other",
+  ],
+  "Магазин. Люди. Атмосфера.": [
+    "Магазин. Люди. Атмосфера.",
+    "The store. The people. The feeling.",
+  ],
+  "Твій щоденний вибір": ["Твой повседневный выбор", "Your everyday edit"],
+  Обирай: ["Выбирай", "Choose"],
+  "по-своєму.": ["по-своему.", "your way."],
+  "Від улюбленої бази до виразних деталей.": [
+    "От любимой базы до выразительных деталей.",
+    "From everyday essentials to distinctive details.",
+  ],
+  "Знайди речі, у яких добре бути собою.": [
+    "Найди вещи, в которых хорошо быть собой.",
+    "Find pieces that feel like you.",
+  ],
+  Зазирнути: ["Заглянуть", "Take a look"],
+  "Ближче до City Brands": [
+    "Ближе к City Brands",
+    "A closer look at City Brands",
+  ],
+  "Місце, де можна": ["Место, где можно", "A place to"],
+  "бути собою.": ["быть собой.", "be yourself."],
+  "Вибирати без поспіху. Роздивлятись деталі. Приміряти та знаходити своє. Так ми бачимо City Brands.":
+    [
+      "Выбирать без спешки. Рассматривать детали. Примерять и находить своё. Таким мы видим City Brands.",
+      "Take your time. Explore the details. Try things on and find your own. That's our idea of City Brands.",
+    ],
+  "Знайди своє.": ["Найди своё.", "Find your own."],
+  "Відомі бренди. Близький тобі стиль.": [
+    "Знакомые бренды. Близкий тебе стиль.",
+    "Familiar brands. A style that feels like you.",
+  ],
+  "Відчуй наживо.": ["Почувствуй вживую.", "Experience it in person."],
+  "Тканини, деталі та примірка без поспіху.": [
+    "Ткани, детали и примерка без спешки.",
+    "The fabrics, the details, the time to try things on.",
+  ],
+  "Будь собою.": ["Будь собой.", "Be yourself."],
+  "Місце, куди хочеться повертатись.": [
+    "Место, куда хочется возвращаться.",
+    "A place to come back to.",
+  ],
+  "Життя магазину": ["Жизнь магазина", "Life in store"],
+  "Дивись. Відчуй.": ["Смотри. Почувствуй.", "See it. Feel it."],
+  "Завітай.": ["Загляни.", "Come on in."],
+  "Справжні відео з нашого магазину.": [
+    "Настоящие видео из нашего магазина.",
+    "Real videos from our store.",
+  ],
+  "Знайомство починається тут.": [
+    "Знакомство начинается здесь.",
+    "It starts right here.",
+  ],
+  "Новинки, які": ["Новинки, которые", "New finds"],
+  "варто побачити.": ["стоит увидеть.", "worth a closer look."],
+  "Зберігай те, що подобається. Запитуй про своє.": [
+    "Сохраняй то, что нравится. Спрашивай о своём.",
+    "Save your favourites. Ask us about your next find.",
+  ],
+  "З онлайну — у місто": ["Из онлайна — в город", "From online to in person"],
+  Побачимось: ["Увидимся", "See you"],
+  "у City Brands.": ["в City Brands.", "at City Brands."],
+  "На карті": ["На карте", "On the map"],
   "CITY BRANDS. З ХАРАКТЕРОМ.": [
     "CITY BRANDS. С ХАРАКТЕРОМ.",
     "CITY BRANDS. WITH ATTITUDE.",

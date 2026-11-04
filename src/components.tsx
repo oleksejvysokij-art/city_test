@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "./i18n";
 import { stories } from "./content";
+import { useRevealMotion } from "./effects";
 
 export function LogoMark({ className = "" }: { className?: string }) {
   return (
@@ -36,24 +37,8 @@ export function Brand({ light = false }: { light?: boolean }) {
       <span className="brand-icon" aria-hidden="true">
         <LogoMark />
       </span>
-      <span className="brand-name">
-        CITY
-        <br />
-        BRANDS
-      </span>
+      <span className="brand-name">CITY BRANDS</span>
     </a>
-  );
-}
-
-export function WordReveal({ text }: { text: string }) {
-  return (
-    <p className="word-reveal">
-      {text.split(" ").map((word, index) => (
-        <span key={index} style={{ "--word-index": index } as CSSProperties}>
-          {word}{" "}
-        </span>
-      ))}
-    </p>
   );
 }
 
@@ -67,35 +52,9 @@ export function Reveal({
   delay?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      element.classList.add("is-visible");
-      return;
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          element.classList.add("is-visible");
-          observer.unobserve(element);
-        }
-      },
-      {
-        threshold: 0.1,
-      },
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
+  useRevealMotion(ref, delay);
   return (
-    <div
-      ref={ref}
-      className={`reveal ${className}`}
-      style={{
-        transitionDelay: `${delay}ms`,
-      }}
-    >
+    <div ref={ref} className={`reveal ${className}`}>
       {children}
     </div>
   );
