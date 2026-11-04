@@ -5,6 +5,24 @@ export type Locale = "uk" | "ru" | "en";
 
 // Ukrainian is the source language. Each entry contains Russian and English.
 const translations: Record<string, [string, string]> = {
+  "CITY BRANDS. З ХАРАКТЕРОМ.": [
+    "CITY BRANDS. С ХАРАКТЕРОМ.",
+    "CITY BRANDS. WITH ATTITUDE.",
+  ],
+  "Відкрити City Brands": ["Открыть City Brands", "Discover City Brands"],
+  "Не просто магазин.": ["Не просто магазин.", "More than a store."],
+  "Твоя територія стилю.": ["Твоя территория стиля.", "Your style territory."],
+  "Знаходь речі. Створюй поєднання. Будь собою.": [
+    "Находи вещи. Создавай сочетания. Будь собой.",
+    "Find your pieces. Mix them your way. Be yourself.",
+  ],
+  "City Brands — речі з характером для людей з характером. Від улюблених брендів до несподіваних поєднань. Приходь приміряти. Знаходь своє.":
+    [
+      "City Brands — вещи с характером для людей с характером. От любимых брендов до неожиданных сочетаний. Приходи примерять. Находи своё.",
+      "City Brands — pieces with personality, for people with personality. From favourite brands to unexpected combinations. Come try things on. Find your own.",
+    ],
+  "Відомі бренди": ["Знакомые бренды", "Familiar brands"],
+  "Живий вибір": ["Живой выбор", "Discover in person"],
   "ТВІЙ СТИЛЬ.": ["ТВОЙ СТИЛЬ.", "YOUR STYLE."],
   "ТВОЄ МІСТО.": ["ТВОЙ ГОРОД.", "YOUR CITY."],
   "Одягай те, що відчуваєш.": [

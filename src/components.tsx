@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -12,6 +12,19 @@ import {
 import { useTranslation } from "./i18n";
 import { stories } from "./content";
 
+export function LogoMark({ className = "" }: { className?: string }) {
+  return (
+    <img
+      className={`logo-mark ${className}`}
+      src="/brand-mark.svg"
+      alt=""
+      aria-hidden="true"
+      width="200"
+      height="190"
+    />
+  );
+}
+
 export function Brand({ light = false }: { light?: boolean }) {
   const { t } = useTranslation();
   return (
@@ -21,7 +34,7 @@ export function Brand({ light = false }: { light?: boolean }) {
       aria-label={t("City Brands — на головну")}
     >
       <span className="brand-icon" aria-hidden="true">
-        cb.
+        <LogoMark />
       </span>
       <span className="brand-name">
         CITY
@@ -29,6 +42,18 @@ export function Brand({ light = false }: { light?: boolean }) {
         BRANDS
       </span>
     </a>
+  );
+}
+
+export function WordReveal({ text }: { text: string }) {
+  return (
+    <p className="word-reveal">
+      {text.split(" ").map((word, index) => (
+        <span key={index} style={{ "--word-index": index } as CSSProperties}>
+          {word}{" "}
+        </span>
+      ))}
+    </p>
   );
 }
 
@@ -116,6 +141,7 @@ export function VideoDialog({
     <dialog
       ref={dialogRef}
       className="video-dialog"
+      data-lenis-prevent=""
       onCancel={onClose}
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();

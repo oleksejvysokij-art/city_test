@@ -18,9 +18,10 @@ import {
   Shirt,
   X,
 } from "lucide-react";
-import { Brand, Reveal, VideoDialog } from "./components";
+import { Brand, LogoMark, Reveal, VideoDialog, WordReveal } from "./components";
 import { ADDRESS, MAP, TELEGRAM, categories, stories } from "./content";
 import { LanguageSwitcher, TranslationProvider, useTranslation } from "./i18n";
+import { usePointerEffects, useSmoothScroll } from "./effects";
 
 function Landing() {
   const { t } = useTranslation();
@@ -34,6 +35,9 @@ function Landing() {
   const heroImageRef = useRef<HTMLImageElement>(null);
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+  useSmoothScroll(activeVideo !== null);
+  usePointerEffects();
 
   useEffect(() => {
     let frame = 0;
@@ -42,6 +46,10 @@ function Landing() {
       if (frame) return;
       frame = window.requestAnimationFrame(() => {
         setHeaderScrolled(window.scrollY > 30);
+        const total =
+          document.documentElement.scrollHeight - window.innerHeight;
+        if (progressRef.current)
+          progressRef.current.style.transform = `scaleX(${total > 0 ? window.scrollY / total : 0})`;
         if (heroImageRef.current && !reduce.matches)
           heroImageRef.current.style.setProperty(
             "--parallax",
@@ -120,6 +128,11 @@ function Landing() {
 
   return (
     <>
+      <div className="ambient-backdrop" aria-hidden="true">
+        <span className="ambient-orb ambient-orb-red" />
+        <span className="ambient-orb ambient-orb-silver" />
+      </div>
+      <div className="reading-progress" ref={progressRef} aria-hidden="true" />
       <a className="skip-link" href="#main">
         {t("Перейти до вмісту")}
       </a>
@@ -181,7 +194,12 @@ function Landing() {
       </header>
 
       <main id="main">
-        <section className="hero" id="home" aria-labelledby="hero-heading">
+        <section
+          className="hero"
+          id="home"
+          aria-labelledby="hero-heading"
+          data-spotlight=""
+        >
           <img
             ref={heroImageRef}
             className="campaign-image"
@@ -194,6 +212,11 @@ function Landing() {
             height="941"
           />
           <div className="hero-shade" />
+          <div className="hero-light" aria-hidden="true" />
+          <div className="hero-brand-seal" aria-hidden="true">
+            <LogoMark />
+            <span>CITY BRANDS</span>
+          </div>
           <div className="hero-meta">
             <span>
               <span className="status-dot" />
@@ -205,11 +228,16 @@ function Landing() {
           </div>
           <div className="hero-content">
             <div className="hero-heading-wrap">
-              <p className="hero-eyebrow">{t("Одягай те, що відчуваєш.")}</p>
+              <p className="hero-eyebrow">
+                <span className="eyebrow-line" />
+                {t("CITY BRANDS. З ХАРАКТЕРОМ.")}
+              </p>
               <h1 id="hero-heading">
-                <span className="hero-line">{t("ТВІЙ СТИЛЬ.")}</span>
+                <span className="hero-line">
+                  <span>{t("ТВІЙ СТИЛЬ.")}</span>
+                </span>
                 <span className="hero-line hero-accent">
-                  {t("ТВОЄ МІСТО.")}
+                  <span>{t("ТВОЄ МІСТО.")}</span>
                 </span>
               </h1>
               <p className="hero-description">
@@ -219,8 +247,12 @@ function Landing() {
               </p>
             </div>
             <div className="hero-bottom">
-              <a className="button button-red hero-cta" href="#collection">
-                <span>{t("Дивитися колекцію")}</span>
+              <a
+                className="button button-red hero-cta"
+                href="#collection"
+                data-magnetic=""
+              >
+                <span>{t("Відкрити City Brands")}</span>
                 <ArrowUpRight size={21} />
               </a>
               <a className="hero-location" href="#location">
@@ -232,7 +264,7 @@ function Landing() {
               </a>
             </div>
           </div>
-          <div className="hero-tour">
+          <div className="hero-tour" data-spotlight="" data-tilt="">
             <button
               className="tour-trigger"
               onClick={() => setActiveVideo(0)}
@@ -307,6 +339,24 @@ function Landing() {
         </div>
 
         <section
+          className="brand-statement container"
+          aria-labelledby="statement-heading"
+        >
+          <Reveal>
+            <span className="statement-index">[ THE CITY IS YOURS ]</span>
+            <h2 id="statement-heading">
+              {t("Не просто магазин.")}
+              <br />
+              <span>{t("Твоя територія стилю.")}</span>
+            </h2>
+          </Reveal>
+          <Reveal className="statement-aside" delay={100}>
+            <LogoMark />
+            <p>{t("Знаходь речі. Створюй поєднання. Будь собою.")}</p>
+          </Reveal>
+        </section>
+
+        <section
           className="collection-section section-space"
           id="collection"
           aria-labelledby="collection-heading"
@@ -366,6 +416,8 @@ function Landing() {
                 <Reveal key={category.id} delay={index * 80}>
                   <button
                     className={`category-card category-${category.id}`}
+                    data-spotlight=""
+                    data-tilt=""
                     onClick={() => setActiveVideo(category.story)}
                     aria-label={`${t("Дивитися відео:")} ${t(category.name)}`}
                   >
@@ -430,11 +482,25 @@ function Landing() {
                   <br />
                   <span>{t("БІЛЬШЕ ТЕБЕ.")}</span>
                 </h2>
-                <p>
-                  {t(
-                    "City Brands — місце для тих, хто любить обирати по-своєму. Поєднувати несподіване, знаходити улюблене й відчувати себе собою.",
+                <WordReveal
+                  text={t(
+                    "City Brands — речі з характером для людей з характером. Від улюблених брендів до несподіваних поєднань. Приходь приміряти. Знаходь своє.",
                   )}
-                </p>
+                />
+                <div className="about-tags">
+                  <span>
+                    <Check size={12} />
+                    {t("Відомі бренди")}
+                  </span>
+                  <span>
+                    <Check size={12} />
+                    {t("Живий вибір")}
+                  </span>
+                  <span>
+                    <Check size={12} />
+                    {t("Твій характер.")}
+                  </span>
+                </div>
                 <a className="text-link" href="#location">
                   {t("Побачимось у City Brands")}
                   <ArrowUpRight size={20} />
@@ -472,7 +538,7 @@ function Landing() {
                   <ArrowUpRight size={19} />
                 </button>
                 <span className="image-corner-mark" aria-hidden="true">
-                  cb.
+                  <LogoMark />
                 </span>
               </Reveal>
             </div>
@@ -536,6 +602,8 @@ function Landing() {
               <Reveal key={story.file} delay={index * 65}>
                 <button
                   className="story-card"
+                  data-spotlight=""
+                  data-tilt=""
                   onClick={() => setActiveVideo(index)}
                   aria-label={`${t("Відтворити:")} ${t(story.title)}`}
                 >
@@ -603,6 +671,7 @@ function Landing() {
                 target="_blank"
                 rel="noreferrer"
                 className="button button-white"
+                data-magnetic=""
               >
                 <span>{t("Підписатися на City Brands")}</span>
                 <ArrowUpRight size={22} />
@@ -691,6 +760,7 @@ function Landing() {
               </span>
               <a
                 className="button button-red"
+                data-magnetic=""
                 href={MAP}
                 target="_blank"
                 rel="noreferrer"

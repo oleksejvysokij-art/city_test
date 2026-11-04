@@ -148,18 +148,27 @@ test("layouts fit phone, tablet and desktop in every language without broken ima
         overflow,
         `${width}px / ${lang} horizontal overflow`,
       ).toBeLessThanOrEqual(1);
-      const headingFits = await page.locator('.hero').evaluate(hero => {
+      const headingFits = await page.locator(".hero").evaluate((hero) => {
         const boundary = hero.getBoundingClientRect();
-        return [...hero.querySelectorAll('.hero-line')].every(line => {
+        return [...hero.querySelectorAll(".hero-line")].every((line) => {
           const range = document.createRange();
           range.selectNodeContents(line);
           const text = range.getBoundingClientRect();
-          return text.right <= boundary.right - 12 && text.left >= boundary.left;
+          return (
+            text.right <= boundary.right - 12 && text.left >= boundary.left
+          );
         });
       });
-      expect(headingFits, `${width}px / ${lang} heading must not be cropped`).toBe(true);
+      expect(
+        headingFits,
+        `${width}px / ${lang} heading must not be cropped`,
+      ).toBe(true);
       for (const image of await page.locator("img").all()) {
-        await image.scrollIntoViewIfNeeded();
+        // Decorative logos float continuously; asset readiness must not depend
+        // on the non-interactive image becoming positionally stable.
+        await image.evaluate((element) =>
+          element.scrollIntoView({ block: "nearest", behavior: "instant" }),
+        );
         await expect
           .poll(() =>
             image.evaluate(
@@ -173,21 +182,32 @@ test("layouts fit phone, tablet and desktop in every language without broken ima
   expect(errors).toEqual([]);
 });
 
-test('category filters open the matching video and FAQ expands', async ({ page }) => {
-  await page.goto('/?lang=en');
-  const filters = page.getByRole('group', { name: 'The collection', exact: true });
-  await filters.getByRole('button', { name: 'Footwear', exact: true }).click();
-  await expect(page.locator('.category-card')).toHaveCount(1);
-  await expect(page.locator('.category-title')).toHaveText('Footwear');
-  await page.locator('.category-card').click();
-  await expect(page.getByRole('dialog').locator('h2')).toHaveText('Step into your own style');
-  await page.keyboard.press('Escape');
-  await filters.getByRole('button', { name: 'All', exact: true }).click();
-  await expect(page.locator('.category-card')).toHaveCount(3);
-  const hours = page.locator('details').filter({ has: page.locator('summary', { hasText: 'What are your opening hours?' }) });
-  await hours.locator('summary').click();
-  await expect(hours).toHaveAttribute('open', '');
-  await expect(hours.locator('p')).toBeVisible();
+test("category filters open the matching video and FAQ expands", async ({
+  page,
+}) => {
+  await page.goto("/?lang=en");
+  const filters = page.getByRole("group", {
+    name: "The collection",
+    exact: true,
+  });
+  await filters.getByRole("button", { name: "Footwear", exact: true }).click();
+  await expect(page.locator(".category-card")).toHaveCount(1);
+  await expect(page.locator(".category-title")).toHaveText("Footwear");
+  await page.locator(".category-card").click();
+  await expect(page.getByRole("dialog").locator("h2")).toHaveText(
+    "Step into your own style",
+  );
+  await page.keyboard.press("Escape");
+  await filters.getByRole("button", { name: "All", exact: true }).click();
+  await expect(page.locator(".category-card")).toHaveCount(3);
+  const hours = page
+    .locator("details")
+    .filter({
+      has: page.locator("summary", { hasText: "What are your opening hours?" }),
+    });
+  await hours.locator("summary").click();
+  await expect(hours).toHaveAttribute("open", "");
+  await expect(hours.locator("p")).toBeVisible();
 });
 
 test("reduced motion leaves the content visible and stops the background video", async ({
@@ -196,10 +216,54 @@ test("reduced motion leaves the content visible and stops the background video",
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/?lang=en");
   await expect(page.locator(".hero-video")).toHaveJSProperty("paused", true);
+  await expect(page.locator("html")).not.toHaveClass(/\blenis\b/);
   await page.locator("#about").scrollIntoViewIfNeeded();
   await expect(page.locator(".about-copy")).toHaveCSS("opacity", "1");
+  for (const word of await page.locator(".word-reveal>span").all())
+    await expect(word).toHaveCSS("opacity", "1");
   await expect(page.locator(".marquee-track")).toHaveCSS(
     "animation-name",
     "none",
   );
+});
+
+test("smooth anchors keep their destination and animated cards remain usable", async ({
+  page,
+}) => {
+  await page.goto("/?lang=en");
+  await page
+    .getByRole("link", { name: "Discover City Brands", exact: true })
+    .click();
+  await expect(page).toHaveURL(/#collection$/);
+  await expect
+    .poll(() => page.evaluate(() => document.activeElement?.id))
+    .toBe("collection");
+  const top = await page
+    .locator("#collection")
+    .evaluate((element) => element.getBoundingClientRect().top);
+  expect(top).toBeGreaterThanOrEqual(75);
+  expect(top).toBeLessThanOrEqual(110);
+
+  const card = page.locator(".category-card").first();
+  await card.scrollIntoViewIfNeeded();
+  const bounds = await card.boundingBox();
+  expect(bounds).not.toBeNull();
+  const initial = await card.evaluate(
+    (element) => getComputedStyle(element).transform,
+  );
+  await page.mouse.move(
+    bounds!.x + bounds!.width * 0.8,
+    bounds!.y + bounds!.height * 0.3,
+  );
+  await expect
+    .poll(() => card.evaluate((element) => getComputedStyle(element).transform))
+    .not.toBe(initial);
+  await card.click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await expect(card).toBeFocused();
+  await expect(
+    page.getByRole("button", { name: /add to cart|buy now|checkout/i }),
+  ).toHaveCount(0);
 });
